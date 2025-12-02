@@ -15,7 +15,7 @@
       "required":["file_path","parameters"],
       "properties":{
         "file_path":{
-          "const":"$[etasl_ros2_application_template]/task_specifications/libraries/debug_lib/task_specifications/move_joystick_reading_sensor_vals_driver.etasl.lua",
+          "const":"$[crospi_application_template]/task_specifications/libraries/debug_lib/task_specifications/move_joystick_reading_sensor_vals_driver.etasl.lua",
           "type":"string",
           "description":"File path of the corresponding task specification"
         },
