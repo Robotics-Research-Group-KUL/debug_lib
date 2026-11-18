@@ -22,12 +22,16 @@ require("geometric")
 require("math")
 reqs = require("task_requirements")
 
-task_description = "Generates independent sine waves for each joint with given amplitudes and frequencies."
+task_description = [[Moves every robot joint along its own sine wave around its initial position (joint space, no Cartesian constraints): the target of joint i is q_i(t) = q_i(0) + amplitudes[i]*sin(2*pi*frequencies[i]*t), with t the time since the start of the task, so the motion starts at the current joint positions.
+Each joint is driven to its target by a position constraint with feedback gain K_joint (with feedforward of the target velocity). No input channels are needed.
+A monitor finishes the task with the event/action "exit" when the task has run for execution_time seconds.
+Outputs: time and the position x_tcp, y_tcp, z_tcp [m] of the "tcp_frame" of the robot model w.r.t. the robot base (world) frame.]]
 
 param = reqs.parameters(task_description,{
-    reqs.params.array({name="amplitudes", type=reqs.array_types.number, default={0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, description="Array with the amplitudes of the sine waves for each joint in [rad]. Its values correspond to the defined robot.robot_joints in the same order", required=true, minimum = -6.28318, maximum=6.28318, minItems = 1}),
-    reqs.params.array({name="frequencies", type=reqs.array_types.number, default={0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, description="Array with the frequencies of the sine waves for each joint in [Hz]. Its values correspond to the defined robot.robot_joints in the same order", required=true, minimum = -6.28318, maximum=6.28318, minItems = 1}),
-    reqs.params.scalar({name="execution_time", description="Time (seconds) that the task should run before stopping ", default = 5, required=false, minimum = 0}),
+    reqs.params.array({name="amplitudes", type=reqs.array_types.number, default={0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, description="Amplitude of the sine wave of each joint, in [rad] for revolute joints ([m] for prismatic joints), i.e. the maximum deviation from the initial joint position. One value per joint, in the same order as the joints of the robot model (robot.robot_joints); the number of values must equal the number of joints. 0 keeps that joint at its initial position; a negative value inverts the direction of the wave.", required=true, minimum = -6.28318, maximum=6.28318, minItems = 1}),
+    reqs.params.array({name="frequencies", type=reqs.array_types.number, default={0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, description="Frequency of the sine wave of each joint in [Hz] (cycles per second). One value per joint, in the same order as the joints of the robot model (robot.robot_joints); the number of values must equal the number of joints. 0 keeps that joint at its initial position; a negative value inverts the direction of the wave.", required=true, minimum = -6.28318, maximum=6.28318, minItems = 1}),
+    reqs.params.scalar({name="execution_time", description="Duration of the task in [s]: when this time has elapsed since the start of the task, the task finishes with the event \"exit\". 0 makes the task finish right after it starts.", default = 5, required=false, minimum = 0}),
+    reqs.params.scalar({name="K_joint", description="Feedback gain [1/s] of the joint position constraints that make each joint follow its sine wave. Higher values correct tracking errors faster; 0 means only the target velocity is applied, without correcting position errors.", default = 2, required=false, minimum = 0}),
 })
 
 robot = reqs.robot_model({"tcp_frame"})
@@ -65,7 +69,7 @@ for i=1,#robot.robot_joints do
         name="joint_trajectory"..i,
         expr= current_jnt - tgt ,
         priority = 2,
-        K=2
+        K=param.get("K_joint")
     };
 
     

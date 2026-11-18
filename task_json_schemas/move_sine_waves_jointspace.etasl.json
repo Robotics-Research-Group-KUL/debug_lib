@@ -2,15 +2,25 @@
   "type":"object",
   "description":"Parameters needed to the corresponding task specification in eTaSL",
   "properties":{
-    "from-debug_lib-version-0.1.0":{
+    "from-debug_lib-version-1.0.1":{
       "const":true,
       "type":"boolean",
-      "description":"Library debug_lib version 0.1.0.\n Set to true to indicate that task specification comes from the library above. \n Library description: Library with basic task specifications that may be needed when debugging communication and control of a robot\nAuthors: Santiago Iregui (KU Leuven), Federico Ulloa (KU Leuven)"
+      "description":"Library debug_lib version 1.0.1.\n Set to true to indicate that task specification comes from the library above. \n Library description: Library with basic task specifications that may be needed when debugging communication and control of a robot\nAuthors: Santiago Iregui (KU Leuven), Federico Ulloa (KU Leuven)"
     }
   },
   "$schema":"http://json-schema.org/draft-06/schema#",
   "additionalProperties":true,
   "dependencies":{
+    "from-debug_lib-version-1.0.1":{
+      "required":["is-move_sine_waves_jointspace"],
+      "properties":{
+        "is-move_sine_waves_jointspace":{
+          "const":true,
+          "type":"boolean",
+          "description":"Task Specification: move_sine_waves_jointspace.etasl.lua\nSet to true to indicate that the task uses the task specification mentioned above. \n Task description: Moves every robot joint along its own sine wave around its initial position (joint space, no Cartesian constraints): the target of joint i is q_i(t) = q_i(0) + amplitudes[i]*sin(2*pi*frequencies[i]*t), with t the time since the start of the task, so the motion starts at the current joint positions.\nEach joint is driven to its target by a position constraint with feedback gain K_joint (with feedforward of the target velocity). No input channels are needed.\nA monitor finishes the task with the event/action \"exit\" when the task has run for execution_time seconds.\nOutputs: time and the position x_tcp, y_tcp, z_tcp [m] of the \"tcp_frame\" of the robot model w.r.t. the robot base (world) frame."
+        }
+      }
+    },
     "is-move_sine_waves_jointspace":{
       "required":["file_path","parameters"],
       "properties":{
@@ -23,6 +33,26 @@
           "type":"object",
           "description":"List of parameters needed to define an instance of the task specification",
           "properties":{
+            "amplitudes":{
+              "oneOf":[{
+                  "items":{
+                    "minimum":-6.28318,
+                    "type":"number",
+                    "maximum":6.28318
+                  },
+                  "type":"array",
+                  "minItems":1
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":[0,0,0,0,0,0],
+              "examples":["$blackboard/output_param/my_task/amplitudes","$application_defined_parameter"],
+              "description":"Amplitude of the sine wave of each joint, in [rad] for revolute joints ([m] for prismatic joints), i.e. the maximum deviation from the initial joint position. One value per joint, in the same order as the joints of the robot model (robot.robot_joints); the number of values must equal the number of joints. 0 keeps that joint at its initial position; a negative value inverts the direction of the wave."
+            },
             "execution_time":{
               "oneOf":[{
                   "minimum":0,
@@ -36,7 +66,7 @@
                 }],
               "default":5,
               "examples":["$blackboard/output_param/my_task/execution_time","$application_defined_parameter"],
-              "description":"Time (seconds) that the task should run before stopping . \nSet as a string beginning with $blackboard such as `$blackboard/output_param/my_task/my_param` if the value is not yet known and thus will be set externally at runtime (only once) depending on e.g. the outcome of a previous action or the outcome of another module.\nSet as $application_defined_parameter to indicate that the parameter is defined by the application and not by the skill specification."
+              "description":"Duration of the task in [s]: when this time has elapsed since the start of the task, the task finishes with the event \"exit\". 0 makes the task finish right after it starts."
             },
             "frequencies":{
               "oneOf":[{
@@ -56,17 +86,12 @@
                 }],
               "default":[0,0,0,0,0,0],
               "examples":["$blackboard/output_param/my_task/frequencies","$application_defined_parameter"],
-              "description":"Array with the frequencies of the sine waves for each joint in [Hz]. Its values correspond to the defined robot.robot_joints in the same order. \nSet as a string beginning with $blackboard such as `$blackboard/output_param/my_task/my_param` if the value is not yet known and thus will be set externally at runtime (only once) depending on e.g. the outcome of a previous action or the outcome of another module.\nSet as $application_defined_parameter to indicate that the parameter is defined by the application and not by the skill specification."
+              "description":"Frequency of the sine wave of each joint in [Hz] (cycles per second). One value per joint, in the same order as the joints of the robot model (robot.robot_joints); the number of values must equal the number of joints. 0 keeps that joint at its initial position; a negative value inverts the direction of the wave."
             },
-            "amplitudes":{
+            "K_joint":{
               "oneOf":[{
-                  "items":{
-                    "minimum":-6.28318,
-                    "type":"number",
-                    "maximum":6.28318
-                  },
-                  "type":"array",
-                  "minItems":1
+                  "minimum":0,
+                  "type":"number"
                 },{
                   "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
                   "type":"string"
@@ -74,28 +99,18 @@
                   "const":"$application_defined_parameter",
                   "type":"string"
                 }],
-              "default":[0,0,0,0,0,0],
-              "examples":["$blackboard/output_param/my_task/amplitudes","$application_defined_parameter"],
-              "description":"Array with the amplitudes of the sine waves for each joint in [rad]. Its values correspond to the defined robot.robot_joints in the same order. \nSet as a string beginning with $blackboard such as `$blackboard/output_param/my_task/my_param` if the value is not yet known and thus will be set externally at runtime (only once) depending on e.g. the outcome of a previous action or the outcome of another module.\nSet as $application_defined_parameter to indicate that the parameter is defined by the application and not by the skill specification."
+              "default":2,
+              "examples":["$blackboard/output_param/my_task/K_joint","$application_defined_parameter"],
+              "description":"Feedback gain [1/s] of the joint position constraints that make each joint follow its sine wave. Higher values correct tracking errors faster; 0 means only the target velocity is applied, without correcting position errors."
             }
           },
           "additionalProperties":false,
           "required":["amplitudes","frequencies"]
         }
       }
-    },
-    "from-debug_lib-version-0.1.0":{
-      "required":["is-move_sine_waves_jointspace"],
-      "properties":{
-        "is-move_sine_waves_jointspace":{
-          "const":true,
-          "type":"boolean",
-          "description":"Task Specification: move_sine_waves_jointspace.etasl.lua\nSet to true to indicate that the task uses the task specification mentioned above. \n Task description: Generates independent sine waves for each joint with given amplitudes and frequencies."
-        }
-      }
     }
   },
-  "required":["from-debug_lib-version-0.1.0"],
+  "required":["from-debug_lib-version-1.0.1"],
   "$id":"move_sine_waves_jointspace",
   "title":"Task Specification Configuration"
 }

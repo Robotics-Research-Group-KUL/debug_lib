@@ -2,15 +2,25 @@
   "type":"object",
   "description":"Parameters needed to the corresponding task specification in eTaSL",
   "properties":{
-    "from-debug_lib-version-0.1.0":{
+    "from-debug_lib-version-1.0.1":{
       "const":true,
       "type":"boolean",
-      "description":"Library debug_lib version 0.1.0.\n Set to true to indicate that task specification comes from the library above. \n Library description: Library with basic task specifications that may be needed when debugging communication and control of a robot\nAuthors: Santiago Iregui (KU Leuven), Federico Ulloa (KU Leuven)"
+      "description":"Library debug_lib version 1.0.1.\n Set to true to indicate that task specification comes from the library above. \n Library description: Library with basic task specifications that may be needed when debugging communication and control of a robot\nAuthors: Santiago Iregui (KU Leuven), Federico Ulloa (KU Leuven)"
     }
   },
   "$schema":"http://json-schema.org/draft-06/schema#",
   "additionalProperties":true,
   "dependencies":{
+    "from-debug_lib-version-1.0.1":{
+      "required":["is-move_joystick_reading_sensor_vals_driver"],
+      "properties":{
+        "is-move_joystick_reading_sensor_vals_driver":{
+          "const":true,
+          "type":"boolean",
+          "description":"Task Specification: move_joystick_reading_sensor_vals_driver.etasl.lua\nSet to true to indicate that the task uses the task specification mentioned above. \n Task description: Debug variant of the joystick teleoperation task: moves a robot frame (task_frame) with the linear and/or angular velocity of a 6D joystick (a.k.a. spacemouse) while also reading sensor values provided by the robot driver.\nThe joystick twist is read from the input channel named by joystick_input_channel (default \"joystick_input\") (Twist, typically fed by a TwistInputHandler, e.g. from /spacenav/twist), multiplied by linear_scale/angular_scale and imposed as a desired velocity of task_frame, expressed along the axes of the robot base (world) frame of the robot model; the constraints only prescribe velocity (feedforward, no position feedback).\nIf activate_linear (activate_angular) is false, the position (orientation) of task_frame is instead kept at its initial value.\nIt also creates the driver input channels <joint_vel_prefix>0..3, <joint_torque_prefix>0..3, <joint_current_prefix>0..3 (Scalar; by default joint_vel_0..3, joint_torque_0..3, joint_current_0..3), and (names given by the *_channel parameters, by default) task_frame_pos (Vector), task_frame_quat (Rotation), task_frame_twist (Twist), task_frame_wrench (Wrench), base_pos (Vector), base_quat (Rotation) and base_twist (Twist); they are only read (for debugging) and do not influence the motion.\nThere is no monitor: the task runs until it is stopped externally. Outputs: time and the position x_tf, y_tf, z_tf [m] of task_frame w.r.t. the robot base frame."
+        }
+      }
+    },
     "is-move_joystick_reading_sensor_vals_driver":{
       "required":["file_path","parameters"],
       "properties":{
@@ -23,9 +33,9 @@
           "type":"object",
           "description":"List of parameters needed to define an instance of the task specification",
           "properties":{
-            "linear_scale":{
+            "joystick_input_channel":{
               "oneOf":[{
-                  "type":"number"
+                  "type":"string"
                 },{
                   "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
                   "type":"string"
@@ -33,51 +43,9 @@
                   "const":"$application_defined_parameter",
                   "type":"string"
                 }],
-              "default":1,
-              "examples":["$blackboard/output_param/my_task/linear_scale","$application_defined_parameter"],
-              "description":"Scales the magnitude of the linear velocity coming from the joystick. \nSet as a string beginning with $blackboard such as `$blackboard/output_param/my_task/my_param` if the value is not yet known and thus will be set externally at runtime (only once) depending on e.g. the outcome of a previous action or the outcome of another module.\nSet as $application_defined_parameter to indicate that the parameter is defined by the application and not by the skill specification."
-            },
-            "activate_angular":{
-              "oneOf":[{
-                  "type":"boolean"
-                },{
-                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
-                  "type":"string"
-                },{
-                  "const":"$application_defined_parameter",
-                  "type":"string"
-                }],
-              "default":false,
-              "examples":["$blackboard/output_param/my_task/activate_angular","$application_defined_parameter"],
-              "description":"If true, the angular velocities of the joystick will control the angular velocities of the defined frame. \nSet as a string beginning with $blackboard such as `$blackboard/output_param/my_task/my_param` if the value is not yet known and thus will be set externally at runtime (only once) depending on e.g. the outcome of a previous action or the outcome of another module.\nSet as $application_defined_parameter to indicate that the parameter is defined by the application and not by the skill specification."
-            },
-            "angular_scale":{
-              "oneOf":[{
-                  "type":"number"
-                },{
-                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
-                  "type":"string"
-                },{
-                  "const":"$application_defined_parameter",
-                  "type":"string"
-                }],
-              "default":1,
-              "examples":["$blackboard/output_param/my_task/angular_scale","$application_defined_parameter"],
-              "description":"Scales the magnitude of the angular velocity coming from the joystick. \nSet as a string beginning with $blackboard such as `$blackboard/output_param/my_task/my_param` if the value is not yet known and thus will be set externally at runtime (only once) depending on e.g. the outcome of a previous action or the outcome of another module.\nSet as $application_defined_parameter to indicate that the parameter is defined by the application and not by the skill specification."
-            },
-            "activate_linear":{
-              "oneOf":[{
-                  "type":"boolean"
-                },{
-                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
-                  "type":"string"
-                },{
-                  "const":"$application_defined_parameter",
-                  "type":"string"
-                }],
-              "default":true,
-              "examples":["$blackboard/output_param/my_task/activate_linear","$application_defined_parameter"],
-              "description":"If true, the linear velocities of the joystick will control the linear velocities of the defined frame. \nSet as a string beginning with $blackboard such as `$blackboard/output_param/my_task/my_param` if the value is not yet known and thus will be set externally at runtime (only once) depending on e.g. the outcome of a previous action or the outcome of another module.\nSet as $application_defined_parameter to indicate that the parameter is defined by the application and not by the skill specification."
+              "default":"joystick_input",
+              "examples":["$blackboard/output_param/my_task/joystick_input_channel","$application_defined_parameter"],
+              "description":"Name of the input channel (type twist) from which the joystick velocities are read: the varname of the input handler that provides it (e.g. a TwistInputHandler subscribed to /spacenav/twist). Change it to use another joystick or input handler"
             },
             "task_frame":{
               "oneOf":[{
@@ -91,26 +59,272 @@
                 }],
               "default":"tcp_frame",
               "examples":["$blackboard/output_param/my_task/task_frame","$application_defined_parameter"],
-              "description":"Name of frame used to control the robot in cartesian space. \nSet as a string beginning with $blackboard such as `$blackboard/output_param/my_task/my_param` if the value is not yet known and thus will be set externally at runtime (only once) depending on e.g. the outcome of a previous action or the outcome of another module.\nSet as $application_defined_parameter to indicate that the parameter is defined by the application and not by the skill specification."
+              "description":"Name of the robot frame (defined in the robot model, e.g. the tool center point) that is moved by the joystick. Its velocities are expressed along the axes of the robot base (world) frame."
+            },
+            "activate_angular":{
+              "oneOf":[{
+                  "type":"boolean"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":false,
+              "examples":["$blackboard/output_param/my_task/activate_angular","$application_defined_parameter"],
+              "description":"If true, the angular velocity of the joystick controls the angular velocity of task_frame. If false, the orientation of task_frame is kept at its initial value."
+            },
+            "weight_angular":{
+              "oneOf":[{
+                  "minimum":0,
+                  "type":"number"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":1,
+              "examples":["$blackboard/output_param/my_task/weight_angular","$application_defined_parameter"],
+              "description":"Weight (dimensionless) of the rotational constraints of task_frame: the three joystick angular velocity constraints if activate_angular is true, or the constraint that keeps the initial orientation otherwise. It sets their relative importance w.r.t. other constraints of the same priority; 0 disables them."
+            },
+            "linear_scale":{
+              "oneOf":[{
+                  "type":"number"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":1,
+              "examples":["$blackboard/output_param/my_task/linear_scale","$application_defined_parameter"],
+              "description":"Dimensionless factor multiplying the linear velocity [m/s] coming from the joystick before it is imposed on task_frame. 1 uses the joystick values unchanged, values between 0 and 1 slow the motion down, 0 blocks the linear motion and a negative value inverts its direction. Only used if activate_linear is true."
+            },
+            "K_keep_translation":{
+              "oneOf":[{
+                  "minimum":0,
+                  "type":"number"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":4,
+              "examples":["$blackboard/output_param/my_task/K_keep_translation","$application_defined_parameter"],
+              "description":"Feedback gain [1/s] of the constraint that keeps the position of task_frame at its initial value (only used if activate_linear is false). Higher values correct deviations faster; 0 means no correction of position errors."
+            },
+            "task_frame_quat_channel":{
+              "oneOf":[{
+                  "type":"string"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":"task_frame_quat",
+              "examples":["$blackboard/output_param/my_task/task_frame_quat_channel","$application_defined_parameter"],
+              "description":"Name of the input channel (type rotation) with the task frame quat read from the robot driver. Only read (debugging), it does not influence the motion"
+            },
+            "joint_vel_prefix":{
+              "oneOf":[{
+                  "type":"string"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":"joint_vel_",
+              "examples":["$blackboard/output_param/my_task/joint_vel_prefix","$application_defined_parameter"],
+              "description":"Prefix of the names of the four input channels (type scalar) with the joint velocities read from the robot driver: the channels are <prefix>0, <prefix>1, <prefix>2 and <prefix>3. Only read (debugging), they do not influence the motion"
+            },
+            "base_twist_channel":{
+              "oneOf":[{
+                  "type":"string"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":"base_twist",
+              "examples":["$blackboard/output_param/my_task/base_twist_channel","$application_defined_parameter"],
+              "description":"Name of the input channel (type twist) with the base twist read from the robot driver. Only read (debugging), it does not influence the motion"
+            },
+            "angular_scale":{
+              "oneOf":[{
+                  "type":"number"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":1,
+              "examples":["$blackboard/output_param/my_task/angular_scale","$application_defined_parameter"],
+              "description":"Dimensionless factor multiplying the angular velocity [rad/s] coming from the joystick before it is imposed on task_frame. 1 uses the joystick values unchanged, values between 0 and 1 slow the rotation down, 0 blocks the rotation and a negative value inverts its direction. Only used if activate_angular is true."
+            },
+            "base_pos_channel":{
+              "oneOf":[{
+                  "type":"string"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":"base_pos",
+              "examples":["$blackboard/output_param/my_task/base_pos_channel","$application_defined_parameter"],
+              "description":"Name of the input channel (type vector) with the base pos read from the robot driver. Only read (debugging), it does not influence the motion"
+            },
+            "base_quat_channel":{
+              "oneOf":[{
+                  "type":"string"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":"base_quat",
+              "examples":["$blackboard/output_param/my_task/base_quat_channel","$application_defined_parameter"],
+              "description":"Name of the input channel (type rotation) with the base quat read from the robot driver. Only read (debugging), it does not influence the motion"
+            },
+            "K_keep_rotation":{
+              "oneOf":[{
+                  "minimum":0,
+                  "type":"number"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":4,
+              "examples":["$blackboard/output_param/my_task/K_keep_rotation","$application_defined_parameter"],
+              "description":"Feedback gain [1/s] of the constraint that keeps the orientation of task_frame at its initial value (only used if activate_angular is false). Higher values correct deviations faster; 0 means no correction of orientation errors."
+            },
+            "task_frame_wrench_channel":{
+              "oneOf":[{
+                  "type":"string"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":"task_frame_wrench",
+              "examples":["$blackboard/output_param/my_task/task_frame_wrench_channel","$application_defined_parameter"],
+              "description":"Name of the input channel (type wrench) with the task frame wrench read from the robot driver. Only read (debugging), it does not influence the motion"
+            },
+            "task_frame_twist_channel":{
+              "oneOf":[{
+                  "type":"string"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":"task_frame_twist",
+              "examples":["$blackboard/output_param/my_task/task_frame_twist_channel","$application_defined_parameter"],
+              "description":"Name of the input channel (type twist) with the task frame twist read from the robot driver. Only read (debugging), it does not influence the motion"
+            },
+            "activate_linear":{
+              "oneOf":[{
+                  "type":"boolean"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":true,
+              "examples":["$blackboard/output_param/my_task/activate_linear","$application_defined_parameter"],
+              "description":"If true, the linear velocity of the joystick controls the linear velocity of task_frame. If false, the position of task_frame is kept at its initial value."
+            },
+            "weight_linear":{
+              "oneOf":[{
+                  "minimum":0,
+                  "type":"number"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":1,
+              "examples":["$blackboard/output_param/my_task/weight_linear","$application_defined_parameter"],
+              "description":"Weight (dimensionless) of the translational constraints of task_frame: the three joystick velocity constraints if activate_linear is true, or the constraint that keeps the initial position otherwise. It sets their relative importance w.r.t. other constraints of the same priority; 0 disables them."
+            },
+            "task_frame_pos_channel":{
+              "oneOf":[{
+                  "type":"string"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":"task_frame_pos",
+              "examples":["$blackboard/output_param/my_task/task_frame_pos_channel","$application_defined_parameter"],
+              "description":"Name of the input channel (type vector) with the task frame pos read from the robot driver. Only read (debugging), it does not influence the motion"
+            },
+            "joint_current_prefix":{
+              "oneOf":[{
+                  "type":"string"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":"joint_current_",
+              "examples":["$blackboard/output_param/my_task/joint_current_prefix","$application_defined_parameter"],
+              "description":"Prefix of the names of the four input channels (type scalar) with the joint currents read from the robot driver: the channels are <prefix>0, <prefix>1, <prefix>2 and <prefix>3. Only read (debugging), they do not influence the motion"
+            },
+            "joint_torque_prefix":{
+              "oneOf":[{
+                  "type":"string"
+                },{
+                  "pattern":"^\\$blackboard(/[a-zA-Z0-9_\\-]+)+$",
+                  "type":"string"
+                },{
+                  "const":"$application_defined_parameter",
+                  "type":"string"
+                }],
+              "default":"joint_torque_",
+              "examples":["$blackboard/output_param/my_task/joint_torque_prefix","$application_defined_parameter"],
+              "description":"Prefix of the names of the four input channels (type scalar) with the joint torques read from the robot driver: the channels are <prefix>0, <prefix>1, <prefix>2 and <prefix>3. Only read (debugging), they do not influence the motion"
             }
           },
           "additionalProperties":false,
           "required":["activate_linear","activate_angular"]
         }
       }
-    },
-    "from-debug_lib-version-0.1.0":{
-      "required":["is-move_joystick_reading_sensor_vals_driver"],
-      "properties":{
-        "is-move_joystick_reading_sensor_vals_driver":{
-          "const":true,
-          "type":"boolean",
-          "description":"Task Specification: move_joystick_reading_sensor_vals_driver.etasl.lua\nSet to true to indicate that the task uses the task specification mentioned above. \n Task description: This task specification allows to control the angular and linear velocity the end effector via a 6D joystick (a.k.a. spacemouse)."
-        }
-      }
     }
   },
-  "required":["from-debug_lib-version-0.1.0"],
+  "required":["from-debug_lib-version-1.0.1"],
   "$id":"move_joystick_reading_sensor_vals_driver",
   "title":"Task Specification Configuration"
 }

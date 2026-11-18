@@ -3,7 +3,7 @@
     "name": "debug_lib",
     "description": "Library with basic task specifications that may be needed when debugging communication and control of a robot",
     "license": "GNU GPLv3",
-    "version": "0.1.0",
+    "version": "1.0.1",
     "authors": [
         {
             "name": "Santiago Iregui",
